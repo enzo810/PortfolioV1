@@ -1,0 +1,134 @@
+"use client";
+
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { requestPasswordReset } from "@/lib/auth-client";
+import { ForgotPasswordSchema } from "@/schemas/AuthFormSchema";
+import { zodResolver } from "@hookform/resolvers/zod";
+import Link from "next/link";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
+
+export default function ForgotPasswordPage() {
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  const form = useForm<z.infer<typeof ForgotPasswordSchema>>({
+    resolver: zodResolver(ForgotPasswordSchema),
+    defaultValues: {
+      email: "",
+    },
+  });
+
+  const onSubmit = async (values: z.infer<typeof ForgotPasswordSchema>) => {
+    setIsLoading(true);
+    try {
+      await requestPasswordReset({
+        email: values.email,
+        redirectTo: "/reset-password",
+      });
+
+      setIsSubmitted(true);
+      toast.success("Reset password link sent successfully!");
+    } catch (error) {
+      console.error("Error while sending the reset password link:", error);
+      toast.error("An error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isSubmitted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="text-center">Email sent!</CardTitle>
+            <CardDescription className="text-center">
+              A reset password link has been sent to your email address. Check
+              your inbox and follow the instructions.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center">
+              <Link
+                href="/signin"
+                className="text-sm text-muted-foreground underline"
+              >
+                Back to login
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle className="text-center">Forgot your password ?</CardTitle>
+          <CardDescription className="text-center">
+            Enter your email address to receive a reset password link
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="email"
+                        placeholder="your.email@example.com"
+                        disabled={isLoading}
+                        className="border-[0.5px] border-foreground text-foreground lg:h-14"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? "Sending..." : "Send link"}
+              </Button>
+            </form>
+          </Form>
+
+          <div className="mt-4 text-center">
+            <Link
+              href="/signin"
+              className="text-sm text-muted-foreground underline"
+            >
+              Back to login
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
