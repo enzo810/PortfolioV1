@@ -1,9 +1,9 @@
 import { createAuthClient } from "better-auth/react";
 
 export const authClient = createAuthClient({
-  baseURL: process.env.BETTER_AUTH_URL || "https://www.enzo-dev.com/api/auth",
+  baseURL:
+    process.env.NEXT_PUBLIC_BETTER_AUTH_URL || "http://localhost:3000/api/auth",
 });
-console.log(process.env.BETTER_AUTH_URL);
 
 export const {
   signIn,

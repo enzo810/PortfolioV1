@@ -19,15 +19,13 @@ import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
 import { SignUpFormData, SignUpFormSchema } from "@/schemas/AuthFormSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 export default function SignUp() {
-  const [isLoading, setIsLoading] = useState(false);
-
   const form = useForm<SignUpFormData>({
     resolver: zodResolver(SignUpFormSchema),
     defaultValues: {
@@ -39,26 +37,34 @@ export default function SignUp() {
 
   const router = useRouter();
 
-  const handleSignUp = async (values: SignUpFormData) => {
-    setIsLoading(true);
+  const { mutateAsync: signUpMutation, isPending: signUpPending } = useMutation(
+    {
+      mutationFn: async (values: SignUpFormData) => {
+        const { error } = await authClient.signUp.email({
+          email: values.email,
+          password: values.password,
+          name: values.name,
+        });
 
-    try {
-      const { error } = await authClient.signUp.email({
-        email: values.email,
-        password: values.password,
-        name: values.name,
-      });
-
-      if (error) {
-        setIsLoading(false);
-        toast.error(error.message);
-      } else {
+        if (error) {
+          throw new Error(error.message);
+        }
+      },
+      onSuccess: () => {
         toast.success("Sign up successful !");
         router.push("/");
-      }
-    } catch {
-      toast.error("An error occurred");
+      },
+      onError: (error: Error) => {
+        console.error("Error while signing up:", error.message);
+        toast.error("An error occurred. Please try again.");
+      },
     }
+  );
+
+  const handleSignUp = async (values: SignUpFormData) => {
+    toast.promise(signUpMutation(values), {
+      loading: "Signing up...",
+    });
   };
 
   return (
@@ -127,8 +133,8 @@ export default function SignUp() {
                 )}
               />
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Sign up..." : "Sign up"}
+              <Button type="submit" className="w-full" disabled={signUpPending}>
+                Sign up
               </Button>
             </form>
           </Form>

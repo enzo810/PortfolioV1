@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { resetPassword } from "@/lib/auth-client";
 import { ResetPasswordSchema } from "@/schemas/AuthFormSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
@@ -30,7 +31,6 @@ import { z } from "zod";
 function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [isLoading, setIsLoading] = useState(false);
   const [token, setToken] = useState<string | null>(null);
 
   const form = useForm<z.infer<typeof ResetPasswordSchema>>({
@@ -51,29 +51,34 @@ function ResetPasswordForm() {
     }
   }, [searchParams, router]);
 
-  const onSubmit = async (values: z.infer<typeof ResetPasswordSchema>) => {
-    if (!token) {
-      toast.error("Reset password token missing");
-      return;
-    }
+  const {
+    mutateAsync: resetPasswordMutation,
+    isPending: resetPasswordPending,
+  } = useMutation({
+    mutationFn: async (values: z.infer<typeof ResetPasswordSchema>) => {
+      if (!token) {
+        throw new Error("Reset password token missing");
+      }
 
-    setIsLoading(true);
-    try {
       await resetPassword({
         newPassword: values.password,
         token: token,
       });
-
+    },
+    onSuccess: () => {
       toast.success("Password reset successfully!");
       router.push("/signin");
-    } catch (error) {
+    },
+    onError: (error: Error) => {
       console.error("Error while resetting the password:", error);
-      toast.error(
-        "Error while resetting the password. The token may have expired."
-      );
-    } finally {
-      setIsLoading(false);
-    }
+      toast.error("An error occurred. Please try again.");
+    },
+  });
+
+  const onSubmit = async (values: z.infer<typeof ResetPasswordSchema>) => {
+    toast.promise(resetPasswordMutation(values), {
+      loading: "Resetting password...",
+    });
   };
 
   if (!token) {
@@ -123,7 +128,7 @@ function ResetPasswordForm() {
                       <Input
                         {...field}
                         type="password"
-                        disabled={isLoading}
+                        disabled={resetPasswordPending}
                         className="border-[0.5px] border-foreground text-foreground lg:h-14"
                       />
                     </FormControl>
@@ -142,7 +147,7 @@ function ResetPasswordForm() {
                       <Input
                         {...field}
                         type="password"
-                        disabled={isLoading}
+                        disabled={resetPasswordPending}
                         className="border-[0.5px] border-foreground text-foreground lg:h-14"
                       />
                     </FormControl>
@@ -151,8 +156,12 @@ function ResetPasswordForm() {
                 )}
               />
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Resetting..." : "Reset password"}
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={resetPasswordPending}
+              >
+                Reset password
               </Button>
             </form>
           </Form>

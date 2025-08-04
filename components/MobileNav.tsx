@@ -1,13 +1,11 @@
 "use client";
 
-import { signOut } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { CiMenuFries } from "react-icons/ci";
 import { links } from "./Nav";
-import { Button } from "./ui/button";
+import SignOutButton from "./SignOutButton";
 import {
   Sheet,
   SheetContent,
@@ -56,13 +54,6 @@ const MobileNav = () => {
     };
   }, []);
 
-  const router = useRouter();
-
-  const handleSignOut = async () => {
-    await signOut();
-    router.push("/");
-  };
-
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger aria-label="Open navigation menu">
@@ -95,14 +86,7 @@ const MobileNav = () => {
               {link.name}
             </Link>
           ))}
-          <Button
-            variant="neon"
-            size="lg"
-            className="uppercase flex items-center gap-2"
-            onClick={handleSignOut}
-          >
-            Logout
-          </Button>
+          <SignOutButton />
         </nav>
       </SheetContent>
     </Sheet>

@@ -33,8 +33,10 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.ico" />
       </head>
       <body className={`${jetbrainsMono.variable} antialiased container`}>
-        <ConditionalHeader />
-        <QueryProvider>{children}</QueryProvider>
+        <QueryProvider>
+          <ConditionalHeader />
+          {children}
+        </QueryProvider>
         <Toaster richColors={true} />
       </body>
     </html>

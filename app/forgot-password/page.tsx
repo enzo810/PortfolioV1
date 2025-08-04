@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { requestPasswordReset } from "@/lib/auth-client";
 import { ForgotPasswordSchema } from "@/schemas/AuthFormSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
 import Link from "next/link";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -27,7 +28,6 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 export default function ForgotPasswordPage() {
-  const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const form = useForm<z.infer<typeof ForgotPasswordSchema>>({
@@ -37,22 +37,30 @@ export default function ForgotPasswordPage() {
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof ForgotPasswordSchema>) => {
-    setIsLoading(true);
-    try {
+  const {
+    mutateAsync: forgotPasswordMutation,
+    isPending: forgotPasswordPending,
+  } = useMutation({
+    mutationFn: async (values: z.infer<typeof ForgotPasswordSchema>) => {
       await requestPasswordReset({
         email: values.email,
         redirectTo: "/reset-password",
       });
-
+    },
+    onSuccess: () => {
       setIsSubmitted(true);
       toast.success("Reset password link sent successfully!");
-    } catch (error) {
+    },
+    onError: (error: Error) => {
       console.error("Error while sending the reset password link:", error);
       toast.error("An error occurred. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
+    },
+  });
+
+  const onSubmit = async (values: z.infer<typeof ForgotPasswordSchema>) => {
+    toast.promise(forgotPasswordMutation(values), {
+      loading: "Sending reset link...",
+    });
   };
 
   if (isSubmitted) {
@@ -104,7 +112,7 @@ export default function ForgotPasswordPage() {
                         {...field}
                         type="email"
                         placeholder="your.email@example.com"
-                        disabled={isLoading}
+                        disabled={forgotPasswordPending}
                         className="border-[0.5px] border-foreground text-foreground lg:h-14"
                       />
                     </FormControl>
@@ -113,8 +121,12 @@ export default function ForgotPasswordPage() {
                 )}
               />
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Sending..." : "Send link"}
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={forgotPasswordPending}
+              >
+                Send link
               </Button>
             </form>
           </Form>

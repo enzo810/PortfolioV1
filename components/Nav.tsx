@@ -1,11 +1,9 @@
 "use client";
 
-import { signOut } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Button } from "./ui/button";
+import SignOutButton from "./SignOutButton";
 
 export const links = [
   {
@@ -69,13 +67,6 @@ const Nav = () => {
     };
   }, []);
 
-  const router = useRouter();
-
-  const handleSignOut = async () => {
-    await signOut();
-    router.push("/");
-  };
-
   return (
     <nav className="flex gap-8 items-center">
       {links.map((link, index) => (
@@ -91,14 +82,7 @@ const Nav = () => {
           {link.name}
         </Link>
       ))}
-      <Button
-        variant="neon"
-        size="lg"
-        className="uppercase flex items-center gap-2"
-        onClick={handleSignOut}
-      >
-        Logout
-      </Button>
+      <SignOutButton />
     </nav>
   );
 };

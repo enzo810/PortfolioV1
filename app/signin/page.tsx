@@ -19,15 +19,13 @@ import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
 import { SignInFormData, SignInFormSchema } from "@/schemas/AuthFormSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 export default function SignIn() {
-  const [isLoading, setIsLoading] = useState(false);
-
   const form = useForm<SignInFormData>({
     resolver: zodResolver(SignInFormSchema),
     defaultValues: {
@@ -38,32 +36,40 @@ export default function SignIn() {
 
   const router = useRouter();
 
-  const handleSignIn = async (values: SignInFormData) => {
-    setIsLoading(true);
+  const { mutateAsync: signInMutation, isPending: signInPending } = useMutation(
+    {
+      mutationFn: async (values: SignInFormData) => {
+        const { error } = await authClient.signIn.email({
+          email: values.email,
+          password: values.password,
+        });
 
-    try {
-      const { error } = await authClient.signIn.email({
-        email: values.email,
-        password: values.password,
-      });
-
-      if (error) {
-        setIsLoading(false);
-        toast.error(error.message);
-      } else {
+        if (error) {
+          throw new Error(error.message);
+        }
+      },
+      onSuccess: () => {
         toast.success("Login successful !");
         router.push("/");
-      }
-    } catch {
-      toast.error("An error occurred");
+      },
+      onError: (error: Error) => {
+        console.error("Error while logging in:", error.message);
+        toast.error("An error occurred. Please try again.");
+      },
     }
+  );
+
+  const handleSignIn = async (values: SignInFormData) => {
+    toast.promise(signInMutation(values), {
+      loading: "Logging in...",
+    });
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-center">Login</CardTitle>
+          <CardTitle className="text-center">Connexion</CardTitle>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -116,8 +122,8 @@ export default function SignIn() {
                 </Link>
               </div>
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Login..." : "Login"}
+              <Button type="submit" className="w-full" disabled={signInPending}>
+                Login
               </Button>
             </form>
           </Form>
