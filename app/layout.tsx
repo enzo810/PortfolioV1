@@ -12,9 +12,9 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Portfolio Enzo Sousa - Full-Stack Developer",
+  title: "Enzo Sousa - Portfolio",
   description:
-    "Portfolio of Enzo Sousa, a 20-year-old full-stack web developer. Student at Epitech in apprenticeship at Creach Agency. Discover my projects and journey.",
+    "Portfolio of Enzo Sousa, a 20-year-old full-stack web developer. Student at Epitech in apprenticeship at Creach Agency.",
   icons: {
     icon: "/favicon.ico",
     shortcut: "/favicon.ico",
