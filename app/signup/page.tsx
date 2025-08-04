@@ -56,7 +56,7 @@ export default function SignUp() {
       },
       onError: (error: Error) => {
         console.error("Error while signing up:", error.message);
-        toast.error("An error occurred. Please try again.");
+        toast.error(error.message || "An error occurred. Please try again.");
       },
     }
   );

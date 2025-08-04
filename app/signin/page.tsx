@@ -54,7 +54,7 @@ export default function SignIn() {
       },
       onError: (error: Error) => {
         console.error("Error while logging in:", error.message);
-        toast.error("An error occurred. Please try again.");
+        toast.error(error.message || "An error occurred. Please try again.");
       },
     }
   );
