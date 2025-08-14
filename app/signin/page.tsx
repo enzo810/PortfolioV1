@@ -49,11 +49,11 @@ export default function SignIn() {
         }
       },
       onSuccess: () => {
-        toast.success("Login successful !");
+        toast.success("Sign in successful !");
         router.push("/");
       },
       onError: (error: Error) => {
-        console.error("Error while logging in:", error.message);
+        console.error("Error while signing in :", error.message);
         toast.error(error.message || "An error occurred. Please try again.");
       },
     }
@@ -61,7 +61,7 @@ export default function SignIn() {
 
   const handleSignIn = async (values: SignInFormData) => {
     toast.promise(signInMutation(values), {
-      loading: "Logging in...",
+      loading: "Signing in...",
     });
   };
 
@@ -69,7 +69,7 @@ export default function SignIn() {
     <div className="min-h-screen flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-center">Connexion</CardTitle>
+          <CardTitle className="text-center">Sign in</CardTitle>
         </CardHeader>
         <CardContent>
           <Form {...form}>
